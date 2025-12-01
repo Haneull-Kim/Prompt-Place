@@ -1,0 +1,78 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 사용자 모델
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  name      String
+
+  purchases Purchase[]
+  promptPosts     PromptPost[] 
+  promptComments  PromptComment[]
+}
+
+// 프롬프트 모델
+model Prompt {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  content     String
+  author      String
+  tag         String
+  llm         String     
+  price       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  purchases   Purchase[]
+  promptPosts PromptPost[]
+}
+
+// 구매 내역 모델
+model Purchase {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      
+  prompt    Prompt   @relation(fields: [promptId], references: [id])
+  promptId  Int      
+  createdAt DateTime @default(now())
+}
+
+// 이슈 모델
+model PromptPost {
+  id        Int      @id @default(autoincrement())
+  title     String   
+  content   String   
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  
+  prompt    Prompt   @relation(fields: [promptId], references: [id])
+  promptId  Int
+  
+  comments  PromptComment[] 
+}
+
+// 댓글 모델 
+model PromptComment {
+  id        Int      @id @default(autoincrement())
+  content   String   
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  
+  post      PromptPost @relation(fields: [postId], references: [id])
+  postId    Int     
+}
